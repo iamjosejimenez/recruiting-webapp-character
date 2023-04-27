@@ -4,6 +4,7 @@ import {
   ATTRIBUTE_LIST,
   CLASS_LIST,
   DEFAULT_ATTRIBUTES_AMOUNT,
+  DEFAULT_SKILLS_TOTAL,
   SKILL_LIST,
 } from "./consts.js";
 import AmountSelector from "./components/AmountSelector";
@@ -13,6 +14,7 @@ function App() {
   const [characterSheet, setCharacterSheet] = useState({
     attributes: {},
     classes: {},
+    skills: {},
   });
 
   useEffect(() => {
@@ -29,33 +31,51 @@ function App() {
       classes[classConstant] = { isOpen: false };
     });
 
+    const skills = {};
+
+    SKILL_LIST.forEach(({ name, ...rest }) => {
+      skills[name] = {
+        amount: 0,
+        ...rest,
+      };
+    });
+
     setCharacterSheet((previousCharacterSheet) => ({
       ...previousCharacterSheet,
       attributes,
       classes,
+      skills,
+      skillsAmountTotal: DEFAULT_SKILLS_TOTAL,
     }));
   }, []);
 
   const handleUpdateAttribute = (event, attribute, operation) => {
     event.preventDefault();
     setCharacterSheet((previousCharacterSheet) => {
-      let newAttributeAmount =
-        previousCharacterSheet.attributes[attribute].amount;
+      let attributeAmount = previousCharacterSheet.attributes[attribute].amount;
 
       if (operation === "SUM") {
-        newAttributeAmount += 1;
+        attributeAmount += 1;
       } else {
-        newAttributeAmount -= 1;
+        attributeAmount -= 1;
+      }
+
+      const attributeModifier = calculateModifier(attributeAmount);
+
+      let skillsAmountTotal = previousCharacterSheet.skillsAmountTotal;
+      if (attribute === "Intelligence") {
+        skillsAmountTotal = DEFAULT_SKILLS_TOTAL + 4 * attributeModifier;
       }
 
       return {
         ...previousCharacterSheet,
+        skillsAmountTotal,
         attributes: {
           ...previousCharacterSheet.attributes,
           [attribute]: {
             ...previousCharacterSheet.attributes[attribute],
-            amount: newAttributeAmount,
-            modifier: calculateModifier(newAttributeAmount),
+            amount: attributeAmount,
+            modifier: attributeModifier,
           },
         },
       };
@@ -93,6 +113,30 @@ function App() {
     });
   };
 
+  const handleUpdateSkill = (event, skill, operation) => {
+    event.preventDefault();
+    setCharacterSheet((previousCharacterSheet) => {
+      let skillAmount = previousCharacterSheet.skills[skill].amount;
+
+      if (operation === "SUM") {
+        skillAmount += 1;
+      } else {
+        skillAmount -= 1;
+      }
+
+      return {
+        ...previousCharacterSheet,
+        skills: {
+          ...previousCharacterSheet.skills,
+          [skill]: {
+            ...previousCharacterSheet.skills[skill],
+            amount: skillAmount,
+          },
+        },
+      };
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -100,9 +144,13 @@ function App() {
       </header>
       <section className="App-section">
         <div>
+          <h2>Attributes</h2>
           {Object.entries(characterSheet.attributes).map(
             ([attribute, { amount, modifier }]) => (
-              <div className="App-Attributes-Container">
+              <div
+                className="App-Attributes-Container"
+                key={`container${attribute}`}
+              >
                 <AmountSelector
                   key={attribute}
                   title={attribute}
@@ -114,12 +162,13 @@ function App() {
                     handleUpdateAttribute(event, attribute, "SUBTRACT")
                   }
                 />
-                <div>Modifier: ({modifier})</div>
+                <div key={`modifier${attribute}`}>Modifier: ({modifier})</div>
               </div>
             )
           )}
         </div>
         <div className="App-Classes-Container">
+          <h2>Classes</h2>
           {
             <ul>
               {Object.entries(characterSheet.classes).map(
@@ -150,6 +199,38 @@ function App() {
               )}
             </ul>
           }
+        </div>
+        <div>
+          <h2>Skills</h2>
+          <h3>Total Available: {characterSheet.skillsAmountTotal}</h3>
+          <div>
+            {Object.entries(characterSheet.skills).map(
+              ([skill, { amount, attributeModifier }]) => (
+                <div className="App-Skills-Container" key={`container${skill}`}>
+                  <AmountSelector
+                    key={skill}
+                    title={skill}
+                    value={amount}
+                    onClickAdd={(event) =>
+                      handleUpdateSkill(event, skill, "SUM")
+                    }
+                    onClickSubtract={(event) => {
+                      handleUpdateSkill(event, skill, "SUBTRACT");
+                    }}
+                  />
+                  <div key={`modifier${skill}`}>
+                    Modifier: {attributeModifier} (
+                    {characterSheet.attributes[attributeModifier].modifier})
+                  </div>
+                  <div key={`total${skill}`}>
+                    Total:{" "}
+                    {characterSheet.attributes[attributeModifier].modifier +
+                      amount}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
         </div>
       </section>
     </div>

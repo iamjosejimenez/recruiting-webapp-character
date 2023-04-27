@@ -53,3 +53,8 @@
   display: flex;
   justify-content: space-evenly;
 }
+
+.App-Skills-Container {
+  display: flex;
+  justify-content: space-evenly;
+}
