@@ -9,8 +9,10 @@ import {
 import AmountSelector from "./components/AmountSelector";
 
 function App() {
-  const [num, setNum] = useState(0);
-  const [characterSheet, setCharacterSheet] = useState({ attributes: {} });
+  const [characterSheet, setCharacterSheet] = useState({
+    attributes: {},
+    classes: {},
+  });
 
   useEffect(() => {
     const attributes = {};
@@ -18,9 +20,15 @@ function App() {
       attributes[attribute] = { amount: DEFAULT_ATTRIBUTES_AMOUNT };
     });
 
+    const classes = {};
+    Object.keys(CLASS_LIST).forEach((classConstant) => {
+      classes[classConstant] = { isOpen: false };
+    });
+
     setCharacterSheet((previousCharacterSheet) => ({
       ...previousCharacterSheet,
       attributes,
+      classes,
     }));
   }, []);
 
@@ -49,13 +57,44 @@ function App() {
     });
   };
 
+  const checkValidClass = (classConstant) => {
+    let isValidClass = true;
+    Object.entries(CLASS_LIST[classConstant]).forEach(
+      ([attribute, minAmount]) => {
+        const attributeAmount = characterSheet.attributes[attribute].amount;
+        isValidClass = isValidClass && attributeAmount >= minAmount;
+      }
+    );
+
+    return isValidClass;
+  };
+
+  const onClickClassHandler = (event, classConstant) => {
+    event.preventDefault();
+    setCharacterSheet((previousCharacterSheet) => {
+      const newClassIsOpen =
+        !previousCharacterSheet.classes[classConstant].isOpen;
+
+      return {
+        ...previousCharacterSheet,
+        classes: {
+          ...previousCharacterSheet.classes,
+          [classConstant]: {
+            ...previousCharacterSheet.classes[classConstant],
+            isOpen: newClassIsOpen,
+          },
+        },
+      };
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>React Coding Exercise</h1>
       </header>
       <section className="App-section">
-        <div>
+        <div className="App-Attributes-Container">
           {Object.entries(characterSheet.attributes).map(
             ([attribute, { amount }]) => (
               <AmountSelector
@@ -71,6 +110,38 @@ function App() {
               />
             )
           )}
+        </div>
+        <div className="App-Classes-Container">
+          {
+            <ul>
+              {Object.entries(characterSheet.classes).map(
+                ([classConstant, { isOpen }]) => (
+                  <li
+                    key={classConstant}
+                    className={
+                      checkValidClass(classConstant) ? "Is-Active-Class" : ""
+                    }
+                  >
+                    <div
+                      onClick={(event) =>
+                        onClickClassHandler(event, classConstant)
+                      }
+                    >
+                      {classConstant}
+                    </div>
+                    {isOpen &&
+                      Object.entries(CLASS_LIST[classConstant]).map(
+                        ([attributeClass, minAmount]) => (
+                          <div key={`${classConstant}${attributeClass}`}>
+                            {attributeClass}: {minAmount}
+                          </div>
+                        )
+                      )}
+                  </li>
+                )
+              )}
+            </ul>
+          }
         </div>
       </section>
     </div>

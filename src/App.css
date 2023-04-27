@@ -44,3 +44,7 @@
     transform: rotate(360deg);
   }
 }
+
+.Is-Active-Class {
+  color: red;
+}
