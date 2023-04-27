@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import {
+  API_URL,
   ATTRIBUTE_LIST,
   CLASS_LIST,
   DEFAULT_ATTRIBUTES_AMOUNT,
@@ -17,36 +18,56 @@ function App() {
     skills: {},
   });
 
+  const loadCharacter = async () => {
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    setCharacterSheet((await response.json()).body);
+  };
+
   useEffect(() => {
-    const attributes = {};
-    ATTRIBUTE_LIST.forEach((attribute) => {
-      attributes[attribute] = {
-        amount: DEFAULT_ATTRIBUTES_AMOUNT,
-        modifier: 0,
-      };
-    });
+    const loadInitialState = async () => {
+      try {
+        const response = await loadCharacter();
+      } catch (error) {
+        console.log(error);
+        const attributes = {};
+        ATTRIBUTE_LIST.forEach((attribute) => {
+          attributes[attribute] = {
+            amount: DEFAULT_ATTRIBUTES_AMOUNT,
+            modifier: 0,
+          };
+        });
 
-    const classes = {};
-    Object.keys(CLASS_LIST).forEach((classConstant) => {
-      classes[classConstant] = { isOpen: false };
-    });
+        const classes = {};
+        Object.keys(CLASS_LIST).forEach((classConstant) => {
+          classes[classConstant] = { isOpen: false };
+        });
 
-    const skills = {};
+        const skills = {};
 
-    SKILL_LIST.forEach(({ name, ...rest }) => {
-      skills[name] = {
-        amount: 0,
-        ...rest,
-      };
-    });
+        SKILL_LIST.forEach(({ name, ...rest }) => {
+          skills[name] = {
+            amount: 0,
+            ...rest,
+          };
+        });
 
-    setCharacterSheet((previousCharacterSheet) => ({
-      ...previousCharacterSheet,
-      attributes,
-      classes,
-      skills,
-      skillsAmountTotal: DEFAULT_SKILLS_TOTAL,
-    }));
+        setCharacterSheet((previousCharacterSheet) => ({
+          ...previousCharacterSheet,
+          attributes,
+          classes,
+          skills,
+          skillsAmountTotal: DEFAULT_SKILLS_TOTAL,
+        }));
+      }
+    };
+
+    loadInitialState();
   }, []);
 
   const handleUpdateAttribute = (event, attribute, operation) => {
@@ -145,6 +166,18 @@ function App() {
     });
   };
 
+  const saveCharacter = async (event) => {
+    event.preventDefault();
+    await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(characterSheet),
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -239,6 +272,9 @@ function App() {
               )
             )}
           </div>
+        </div>
+        <div>
+          <button onClick={saveCharacter}>Save Character</button>
         </div>
       </section>
     </div>

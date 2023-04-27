@@ -57,3 +57,5 @@ export const SKILL_LIST = [
 
 export const DEFAULT_ATTRIBUTES_AMOUNT = 10;
 export const DEFAULT_SKILLS_TOTAL = 10;
+export const API_URL =
+  "https://recruiting.verylongdomaintotestwith.ca/api/{iamjosejimenez}/character";
