@@ -115,8 +115,16 @@ function App() {
 
   const handleUpdateSkill = (event, skill, operation) => {
     event.preventDefault();
+
     setCharacterSheet((previousCharacterSheet) => {
       let skillAmount = previousCharacterSheet.skills[skill].amount;
+      const skillsSum = Object.values(previousCharacterSheet.skills)
+        .map(({ amount }) => amount)
+        .reduce((partialSum, a) => partialSum + a, 0);
+
+      if (skillsSum === characterSheet.skillsAmountTotal) {
+        return { ...previousCharacterSheet };
+      }
 
       if (operation === "SUM") {
         skillAmount += 1;
