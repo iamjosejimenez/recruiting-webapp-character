@@ -48,3 +48,8 @@
 .Is-Active-Class {
   color: red;
 }
+
+.App-Attributes-Container {
+  display: flex;
+  justify-content: space-evenly;
+}

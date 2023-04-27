@@ -7,6 +7,7 @@ import {
   SKILL_LIST,
 } from "./consts.js";
 import AmountSelector from "./components/AmountSelector";
+import { calculateModifier } from "./utils";
 
 function App() {
   const [characterSheet, setCharacterSheet] = useState({
@@ -17,7 +18,10 @@ function App() {
   useEffect(() => {
     const attributes = {};
     ATTRIBUTE_LIST.forEach((attribute) => {
-      attributes[attribute] = { amount: DEFAULT_ATTRIBUTES_AMOUNT };
+      attributes[attribute] = {
+        amount: DEFAULT_ATTRIBUTES_AMOUNT,
+        modifier: 0,
+      };
     });
 
     const classes = {};
@@ -51,6 +55,7 @@ function App() {
           [attribute]: {
             ...previousCharacterSheet.attributes[attribute],
             amount: newAttributeAmount,
+            modifier: calculateModifier(newAttributeAmount),
           },
         },
       };
@@ -94,20 +99,23 @@ function App() {
         <h1>React Coding Exercise</h1>
       </header>
       <section className="App-section">
-        <div className="App-Attributes-Container">
+        <div>
           {Object.entries(characterSheet.attributes).map(
-            ([attribute, { amount }]) => (
-              <AmountSelector
-                key={attribute}
-                title={attribute}
-                value={amount}
-                onClickAdd={(event) =>
-                  handleUpdateAttribute(event, attribute, "SUM")
-                }
-                onClickSubtract={(event) =>
-                  handleUpdateAttribute(event, attribute, "SUBTRACT")
-                }
-              />
+            ([attribute, { amount, modifier }]) => (
+              <div className="App-Attributes-Container">
+                <AmountSelector
+                  key={attribute}
+                  title={attribute}
+                  value={amount}
+                  onClickAdd={(event) =>
+                    handleUpdateAttribute(event, attribute, "SUM")
+                  }
+                  onClickSubtract={(event) =>
+                    handleUpdateAttribute(event, attribute, "SUBTRACT")
+                  }
+                />
+                <div>Modifier: ({modifier})</div>
+              </div>
             )
           )}
         </div>
