@@ -26,15 +26,21 @@ function App() {
       },
     });
 
-    setCharacterSheet((await response.json()).body);
+    const responseJson = await response.json();
+    if (
+      responseJson.body.message === "Item not found" ||
+      response.status !== 200
+    ) {
+      throw new Error("Invalid initial data");
+    }
+    setCharacterSheet(responseJson.body);
   };
 
   useEffect(() => {
     const loadInitialState = async () => {
       try {
-        const response = await loadCharacter();
+        await loadCharacter();
       } catch (error) {
-        console.log(error);
         const attributes = {};
         ATTRIBUTE_LIST.forEach((attribute) => {
           attributes[attribute] = {
